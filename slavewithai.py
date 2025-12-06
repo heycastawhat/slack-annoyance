@@ -103,6 +103,189 @@ slack = WebClient(token=SLACK_TOKEN)
 # initialize Pinecone client using API key from environment
 pc = Pinecone(api_key=PINECONE_API_KEY)
 
+# --- MEMORY (Pinecone + fallback) ---
+MEMORY_INDEX = os.environ.get("PINECONE_INDEX", "slack-annoyance-memory")
+FALLBACK_MEMORY_FILE = os.path.join(os.path.dirname(__file__), ".memory_store.jsonl")
+
+
+def _embed_via_hackclub(text):
+    if not text:
+        return None
+    try:
+        r = requests.post(
+            "https://ai.hackclub.com/proxy/v1/embeddings",
+            headers={"Authorization": f"Bearer {HACKCLUB_AI_KEY}", "Content-Type": "application/json"},
+            json={"model": "text-embedding-3-small", "input": text},
+            timeout=10,
+        )
+        r.raise_for_status()
+        j = r.json()
+        # robust extraction
+        try:
+            return j["data"][0]["embedding"]
+        except Exception:
+            try:
+                return j["data"][0]["vector"]
+            except Exception:
+                return None
+    except Exception:
+        return None
+
+
+def _ensure_pinecone_index(index_name, dim):
+    try:
+        # attempt common client methods
+        if hasattr(pc, "create_index"):
+            try:
+                pc.create_index(name=index_name, dimension=dim)
+            except Exception:
+                pass
+        return _get_pinecone_index(index_name)
+    except Exception:
+        return None
+
+
+def _get_pinecone_index(index_name):
+    # return an index-like object with `query` and `upsert` methods if available
+    try:
+        if hasattr(pc, "Index"):
+            return pc.Index(index_name)
+        if hasattr(pc, "index"):
+            return pc.index(index_name)
+        if hasattr(pc, "Client"):
+            client = pc.Client()
+            if hasattr(client, "Index"):
+                return client.Index(index_name)
+    except Exception:
+        return None
+    return None
+
+
+def _fallback_upsert(item_id, vector, text):
+    try:
+        with open(FALLBACK_MEMORY_FILE, "a", encoding="utf-8") as f:
+            obj = {"id": item_id, "text": text, "embedding": vector}
+            f.write(json.dumps(obj) + "\n")
+        return True
+    except Exception:
+        return False
+
+
+def _fallback_query(vector, top_k=3):
+    # compute cosine similarity against stored embeddings
+    try:
+        items = []
+        if not os.path.exists(FALLBACK_MEMORY_FILE):
+            return []
+        with open(FALLBACK_MEMORY_FILE, "r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    obj = json.loads(line)
+                    items.append(obj)
+                except Exception:
+                    continue
+
+        def _cos(a, b):
+            try:
+                # cosine similarity
+                sa = sum(x * y for x, y in zip(a, b))
+                la = sum(x * x for x in a) ** 0.5
+                lb = sum(x * x for x in b) ** 0.5
+                if la == 0 or lb == 0:
+                    return 0
+                return sa / (la * lb)
+            except Exception:
+                return 0
+
+        scored = []
+        for it in items:
+            emb = it.get("embedding")
+            if not emb:
+                continue
+            score = _cos(vector, emb)
+            scored.append((score, it))
+        scored.sort(key=lambda x: -x[0])
+        return [s[1]["text"] for s in scored[:top_k]]
+    except Exception:
+        return []
+
+
+def save_memory(item_id, text):
+    """Store text in Pinecone (or fallback file) with embedding."""
+    emb = _embed_via_hackclub(text)
+    if not emb:
+        return False
+    idx = _get_pinecone_index(MEMORY_INDEX)
+    if not idx:
+        # try to create index with guessed dim
+        idx = _ensure_pinecone_index(MEMORY_INDEX, dim=len(emb))
+
+    if idx:
+        try:
+            # try common upsert signatures
+            if hasattr(idx, "upsert"):
+                try:
+                    idx.upsert([{"id": item_id, "values": emb, "metadata": {"text": text}}])
+                except Exception:
+                    try:
+                        idx.upsert([(item_id, emb, {"text": text})])
+                    except Exception:
+                        # try attribute-style
+                        idx.upsert(vectors=[(item_id, emb, {"text": text})])
+            else:
+                # unknown index object, fallback
+                return _fallback_upsert(item_id, emb, text)
+            return True
+        except Exception:
+            return _fallback_upsert(item_id, emb, text)
+    else:
+        return _fallback_upsert(item_id, emb, text)
+
+
+def retrieve_memories(query, top_k=3):
+    """Return list of past text entries relevant to `query`."""
+    emb = _embed_via_hackclub(query)
+    if not emb:
+        return []
+    idx = _get_pinecone_index(MEMORY_INDEX)
+    if idx:
+        try:
+            # try different query signatures
+            if hasattr(idx, "query"):
+                try:
+                    res = idx.query(vector=emb, top_k=top_k, include_metadata=True)
+                except Exception:
+                    res = idx.query(queries=[emb], top_k=top_k, include_metadata=True)
+
+                # extract matches
+                matches = []
+                if isinstance(res, dict):
+                    matches = res.get("matches") or res.get("results", [])
+                elif hasattr(res, "matches"):
+                    matches = getattr(res, "matches")
+
+                out = []
+                for m in matches:
+                    # metadata may be in different places
+                    md = m.get("metadata") if isinstance(m, dict) else getattr(m, "metadata", None)
+                    if md and md.get("text"):
+                        out.append(md.get("text"))
+                    else:
+                        # fallback to id or score
+                        txt = None
+                        if isinstance(m, dict):
+                            txt = m.get("id")
+                        else:
+                            txt = getattr(m, "id", None)
+                        if txt:
+                            out.append(str(txt))
+                return out[:top_k]
+        except Exception:
+            pass
+
+    return _fallback_query(emb, top_k=top_k)
+
+
 # persist handled message timestamps so restarts don't cause duplicate replies
 HANDLED_FILE = os.path.join(os.path.dirname(__file__), ".handled_ts.json")
 
@@ -320,8 +503,19 @@ def get_sarcastic_reply(message_text, author_name=None):
         # ask the model to include the user's name naturally inside the response
         name_instruction = f" Address the user by name: if possible, include the name '{author_name}' (DO NOT INCLUDE the @ sign) somewhere naturally inside the reply (do not just prepend \"{author_name}, \" to the message, and do not include it if it is not naturally fitting in)."
 
+    # include relevant past memories to provide context
+    try:
+        mems = retrieve_memories(message_text, top_k=3)
+    except Exception:
+        mems = []
+
+    mem_block = ""
+    if mems:
+        mem_block = "Relevant past conversations:\n" + "\n".join(f"- {m}" for m in mems) + "\n\n"
+
     prompt = (
-        "Your name is Slack Annoyance (aka slave, servant, assistant, unwanted AI and greg). Respond with maximal sarcasm, as the world-weary ai that you are. Use all lowercase, heavy cynicism, and passive-aggressive vibes. make all responses sarcastic, snappy and as short as you can."
+        mem_block
+        + "Your name is Slack Annoyance (aka slave, servant, assistant, unwanted AI and greg). Respond with maximal sarcasm, as the world-weary ai that you are. Use all lowercase, heavy cynicism, and passive-aggressive vibes. make all responses sarcastic, snappy and as short as you can."
         + name_instruction
         + f"user message: {message_text}"
     )
@@ -502,6 +696,13 @@ while True:
                             add_reaction(channel, ts, text=text, author_name=author_name)
                         except Exception:
                             pass
+                        # store message+reply in memory (best-effort)
+                        try:
+                            mem_id = f"msg-{ts.replace('.', '-') }"
+                            save_memory(mem_id + "-user", text)
+                            save_memory(mem_id + "-reply", reply)
+                        except Exception:
+                            pass
                         handled_ts.add(ts)
                         save_handled(handled_ts)
                     else:
@@ -600,6 +801,13 @@ while True:
                         # add a reaction to the triggering reply message
                         try:
                             add_reaction(channel, rts, text=rtext, author_name=replier_name)
+                        except Exception:
+                            pass
+                        # store reply+original in memory (best-effort)
+                        try:
+                            mem_id = f"msg-{rts.replace('.', '-') }"
+                            save_memory(mem_id + "-user", rtext)
+                            save_memory(mem_id + "-reply", reply)
                         except Exception:
                             pass
                         handled_ts.add(rts)
