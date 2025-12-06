@@ -12,6 +12,7 @@ LASTFM_API_KEY = os.getenv("LASTFM_API_KEY")
 LASTFM_USER = os.getenv("LASTFM_USER")
 SLACK_CHANNEL = os.getenv("SLACK_CHANNEL")
 SLACK_USER_ID = os.getenv("SLACK_UID")
+MESSAGE_FILE = os.getenv("MUSIC_MESSAGE_FILE")
 
 POLL_INTERVAL = 25           # seconds between checks
 SESSION_TIMEOUT = 10 * 60    # 10 minutes inactivity resets session
@@ -21,6 +22,9 @@ slack = WebClient(token=SLACK_TOKEN)
 last_track_name = None
 thread_ts = None
 last_activity_time = 0
+
+with open(MESSAGE_FILE, 'r') as f:
+   MUSIC_MESSAGE = f.readline() 
 
 # --- MAIN LOOP ---
 while True:
@@ -50,7 +54,7 @@ while True:
             if thread_ts is None:
                 resp = slack.chat_postMessage(
                     channel=SLACK_CHANNEL,
-                    text=f"<@{SLACK_USER_ID}> started a listening session, lets see how much twenty one pilots he listens to!",
+                    text=f"<@{SLACK_USER_ID}> started a listening session, {MUSIC_MESSAGE}",
                 )
                 thread_ts = resp['ts']
 
