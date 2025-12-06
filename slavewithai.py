@@ -46,6 +46,8 @@ TRIGGERS = [  # these are converted to lower for case insensitivity :D
         "slack annoyance",
         "U0A1K6RV4LC",
         "@U0A1K6RV4LC",
+        "<@U0A1K6RV4LC>",
+        "@Slack Annoyance",
         "Greg",
         "greg",
         "Assistant",
