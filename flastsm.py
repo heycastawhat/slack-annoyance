@@ -10,9 +10,9 @@ load_dotenv()
 SLACK_TOKEN = os.getenv("SLACK_TOKEN")
 LASTFM_API_KEY = os.getenv("LASTFM_API_KEY")
 LASTFM_USER = os.getenv("LASTFM_USER")
+SLACK_CHANNEL = os.getenv("SLACK_CHANNEL")
+SLACK_USER_ID = os.getenv("SLACK_UID")
 
-SLACK_CHANNEL = "C09H93AKCLA"           # Public channel name (with #) or private channel ID
-SLACK_USER_ID = "U091KE59H5H"        # Your Slack user ID for mentions
 POLL_INTERVAL = 25           # seconds between checks
 SESSION_TIMEOUT = 10 * 60    # 10 minutes inactivity resets session
 
