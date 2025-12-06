@@ -10,6 +10,7 @@ import langfuse
 import requests
 from langfuse import get_client, observe
 from slack_sdk import WebClient
+from pinecone import Pinecone
 
 # optionally load environment variables from a .env file if python-dotenv is installed
 try:
@@ -22,9 +23,10 @@ except Exception as e:
 # --- CONFIG ---
 SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
 HACKCLUB_AI_KEY = os.environ.get("HACKCLUB_AI_KEY")
+PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 
-if not SLACK_TOKEN or not HACKCLUB_AI_KEY:
-    print("Error: SLACK_TOKEN and HACKCLUB_AI_KEY must be set in the environment.")
+if not SLACK_TOKEN or not HACKCLUB_AI_KEY or not PINECONE_API_KEY:
+    print("Error: SLACK_TOKEN, HACKCLUB_AI_KEY and PINECONE_API_KEY must be set in the environment.")
     print(
         "Create a .env file next to `slavewithai.py` or export the variables in your shell."
     )
@@ -97,6 +99,9 @@ REACTIONS = [
 ]
 
 slack = WebClient(token=SLACK_TOKEN)
+
+# initialize Pinecone client using API key from environment
+pc = Pinecone(api_key=PINECONE_API_KEY)
 
 # persist handled message timestamps so restarts don't cause duplicate replies
 HANDLED_FILE = os.path.join(os.path.dirname(__file__), ".handled_ts.json")
