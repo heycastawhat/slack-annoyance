@@ -1,0 +1,37 @@
+{
+    "display_information": {
+        "name": "Slack Annoyance",
+        "description": "It's Josh's annoying slack bot",
+        "background_color": "#6b60db",
+        "long_description": "This bot is actually quite annoying to the point where I find it annoying. Did I mention It's annoying? It's kind of funny to fight the AI in Josh's Personal Channel so yep thats all now I've hit the 175 Char minimum bye!"
+    },
+    "features": {
+        "bot_user": {
+            "display_name": "Slack Annoyance",
+            "always_online": true
+        }
+    },
+    "oauth_config": {
+        "scopes": {
+            "bot": [
+                "app_mentions:read",
+                "channels:history",
+                "chat:write",
+                "chat:write.public",
+                "emoji:read",
+                "groups:history",
+                "im:history",
+                "mpim:history",
+                "reactions:read",
+                "reactions:write",
+                "users.profile:read",
+                "users:read"
+            ]
+        }
+    },
+    "settings": {
+        "org_deploy_enabled": false,
+        "socket_mode_enabled": false,
+        "token_rotation_enabled": false
+    }
+}

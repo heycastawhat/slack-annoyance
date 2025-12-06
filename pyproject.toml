@@ -1,0 +1,12 @@
+[project]
+name = "slack-annoyance"
+version = "0.1.0"
+description = "An Annoying Slackbot"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dotenv>=0.9.9",
+    "langfuse>=3.10.5",
+    "requests>=2.32.5",
+    "slack-sdk>=3.39.0",
+]
