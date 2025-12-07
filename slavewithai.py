@@ -610,9 +610,9 @@ while True:
                                 ok = save_memory(sid, to_store)
                                 try:
                                     if ok:
-                                        slack.chat_postMessage(channel=channel, text="got it — saved to memory.", thread_ts=reply_target)
+                                        slack.chat_postMessage(channel=channel, text="got it — saved to memory.")
                                     else:
-                                        slack.chat_postMessage(channel=channel, text="couldn't save memory (fallback failed).", thread_ts=reply_target)
+                                        slack.chat_postMessage(channel=channel, text="couldn't save memory (fallback failed).")
                                 except Exception:
                                     pass
                                 handled_ts.add(ts)
@@ -625,7 +625,7 @@ while True:
                             q = parts[1].strip() if len(parts) > 1 else ""
                             if not q:
                                 try:
-                                    slack.chat_postMessage(channel=channel, text="usage: `recall <query>` — I'll fetch related memories.", thread_ts=reply_target)
+                                    slack.chat_postMessage(channel=channel, text="usage: `recall <query>` — I'll fetch related memories.")
                                 except Exception:
                                     pass
                                 handled_ts.add(ts)
@@ -637,10 +637,10 @@ while True:
                                     body = "here are the top memories i found:\n" + "\n".join(f"- {m}" for m in mems)
                                 else:
                                     body = "no related memories found."
-                                slack.chat_postMessage(channel=channel, text=body, thread_ts=reply_target)
+                                slack.chat_postMessage(channel=channel, text=body)
                             except Exception:
                                 try:
-                                    slack.chat_postMessage(channel=channel, text="failed to retrieve memories.", thread_ts=reply_target)
+                                    slack.chat_postMessage(channel=channel, text="failed to retrieve memories.")
                                 except Exception:
                                     pass
                             handled_ts.add(ts)
