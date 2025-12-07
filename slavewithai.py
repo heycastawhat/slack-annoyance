@@ -48,18 +48,11 @@ TRIGGERS = [  # these are converted to lower for case insensitivity :D
         "@U0A1K6RV4LC",
         "<@U0A1K6RV4LC>",
         "@Slack Annoyance",
-        "Greg",
         "greg",
-        "Assistant",
-        "Slave",
-        "Servant",
-        "Unwanted AI",
-        "Slack Annoyance",
-        "slack Annoyance",
     ]
 ]
 
-ALLOWED_CHANNELS = ["C09H93AKCLA", "C09H6322H7D", "C09KB5MT6N6", "C0A1TJJTT8U", "C09AHN6V1U7", "C0A21M6CWLU"]
+ALLOWED_CHANNELS = ["C09H93AKCLA", "C09H6322H7D", "C09KB5MT6N6", "C0A1TJJTT8U", "C09AHN6V1U7", "C0A21M6CWLU", "C0A1XK69529"]
 
 BANNED_USERS = ["<@UID>"]  # add banned users in the format <@UIDHERE>
 
