@@ -5,6 +5,7 @@ import random
 import re
 import textwrap
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 import langfuse
 import requests
@@ -167,40 +168,31 @@ def _fallback_upsert(item_id, vector, text):
 
 
 def _fallback_query(vector, top_k=3):
-    # compute cosine similarity against stored embeddings
+    """Compute cosine similarity against stored embeddings."""
+    if not os.path.exists(FALLBACK_MEMORY_FILE):
+        return []
+    
     try:
         items = []
-        if not os.path.exists(FALLBACK_MEMORY_FILE):
-            return []
         with open(FALLBACK_MEMORY_FILE, "r", encoding="utf-8") as f:
             for line in f:
                 try:
                     obj = json.loads(line)
-                    items.append(obj)
+                    if obj.get("embedding"):
+                        items.append(obj)
                 except Exception:
                     continue
 
         def _cos(a, b):
-            try:
-                # cosine similarity
-                sa = sum(x * y for x, y in zip(a, b))
-                la = sum(x * x for x in a) ** 0.5
-                lb = sum(x * x for x in b) ** 0.5
-                if la == 0 or lb == 0:
-                    return 0
-                return sa / (la * lb)
-            except Exception:
-                return 0
+            """Optimized cosine similarity."""
+            dot_product = sum(x * y for x, y in zip(a, b))
+            norm_a = sum(x * x for x in a) ** 0.5
+            norm_b = sum(x * x for x in b) ** 0.5
+            return dot_product / (norm_a * norm_b) if norm_a and norm_b else 0
 
-        scored = []
-        for it in items:
-            emb = it.get("embedding")
-            if not emb:
-                continue
-            score = _cos(vector, emb)
-            scored.append((score, it))
-        scored.sort(key=lambda x: -x[0])
-        return [s[1]["text"] for s in scored[:top_k]]
+        scored = [((_cos(vector, item["embedding"]), item)) for item in items]
+        scored.sort(key=lambda x: x[0], reverse=True)
+        return [item["text"] for score, item in scored[:top_k]]
     except Exception:
         return []
 
@@ -351,7 +343,7 @@ def load_emoji_list():
     try:
         resp = slack.emoji_list()
         if resp.get("ok"):
-            em = resp.get("emoji", {}) or {}
+            em = resp.get("emoji", {})
             _emoji_cache = set(em.keys())
         else:
             _emoji_cache = set()
@@ -362,79 +354,56 @@ def load_emoji_list():
 
 
 def choose_reaction_for_text(text, author_name=None):
-    """Heuristic mapping from message text to preferred emoji short names.
-
-    Returns a short name from `REACTIONS` or a sensible default.
-    """
+    """Heuristic mapping from message text to preferred emoji short names."""
     if not text:
         return random.choice(REACTIONS)
+    
     t = text.lower()
-
-    # laughter / joking
-    laugh_kw = ["lol", "lmao", "haha", "rofl", "funny", "hilarious", "hehe"]
-    for k in laugh_kw:
-        if k in t:
-            return random.choice(["loll", "ultrafastparrot", "hehehe", "tradeoffer", "yay"])
-
-    # positive / appreciative
-    pos_kw = ["thanks", "thank", "nice", "great", "awesome", "love", "ty"]
-    for k in pos_kw:
-        if k in t:
-            return random.choice(["yay", "star", "upvote", "wave-club-penguin"])
-
-    # sad / sympathetic
-    sad_kw = ["sorry", "sad", "unfortunate", "rip", "tragic"]
-    for k in sad_kw:
-        if k in t:
-            return random.choice(["heavysob", "3d-sad-emoji", "eyes-shaking"])
-
-    # shocked / surprise
-    shock_kw = ["what?", "wtf", "wait", "shocked", "wow", "really?", "no way", "whoa"]
-    for k in shock_kw:
-        if k in t:
-            return random.choice(["shocked", "eyes-shaking", "dinowow"])
-
-    # angry / negative
-    neg_kw = ["stfu", "shut up", "no", "hate", "annoying", "angry", "wrong"]
-    for k in neg_kw:
-        if k in t:
-            return random.choice(["angry-dino", "mad_ping_sock", "nooo", "get-out"])
-
-    # meme / trade
-    meme_kw = ["trade", "deal", "offer", "meme", "parrot"]
-    for k in meme_kw:
-        if k in t:
-            return random.choice(["tradeoffer", "ultrafastparrot", "x"])
-
-    # fallback
+    
+    # keyword mapping for performance
+    reaction_map = {
+        ("lol", "lmao", "haha", "rofl", "funny", "hilarious", "hehe"): 
+            ["loll", "ultrafastparrot", "hehehe", "tradeoffer", "yay"],
+        ("thanks", "thank", "nice", "great", "awesome", "love", "ty"):
+            ["yay", "star", "upvote", "wave-club-penguin"],
+        ("sorry", "sad", "unfortunate", "rip", "tragic"):
+            ["heavysob", "3d-sad-emoji", "eyes-shaking"],
+        ("what?", "wtf", "wait", "shocked", "wow", "really?", "no way", "whoa"):
+            ["shocked", "eyes-shaking", "dinowow"],
+        ("stfu", "shut up", "no", "hate", "annoying", "angry", "wrong"):
+            ["angry-dino", "mad_ping_sock", "nooo", "get-out"],
+        ("trade", "deal", "offer", "meme", "parrot"):
+            ["tradeoffer", "ultrafastparrot", "x"]
+    }
+    
+    for keywords, reactions in reaction_map.items():
+        if any(k in t for k in keywords):
+            return random.choice(reactions)
+    
     return random.choice(REACTIONS)
 
 
 def search_emoji_for_keywords(keywords, available):
-    """Try to find a workspace emoji matching any of the provided keywords.
-
-    Strategy:
-    - For each keyword (longer first), try substring match against emoji short names.
-    - If none, use difflib.get_close_matches for fuzzy match.
-    - Return first found match or None.
-    """
+    """Try to find a workspace emoji matching any of the provided keywords."""
     if not available:
         return None
-    # ensure unique, sorted by length (prefer longer/more specific words)
+    
+    # normalize and dedupe keywords
     seen = set()
-    kws = [k for k in keywords if k]
-    kws = sorted(kws, key=lambda s: -len(s))
-    for raw in kws:
-        k = re.sub(r"[^a-z0-9_]+", "", raw.lower())
-        if not k or k in seen:
-            continue
-        seen.add(k)
+    normalized_kws = []
+    for k in sorted(keywords, key=len, reverse=True):
+        clean = re.sub(r"[^a-z0-9_]+", "", k.lower())
+        if clean and clean not in seen:
+            seen.add(clean)
+            normalized_kws.append(clean)
 
+    # try substring then fuzzy matching
+    for k in normalized_kws:
         # substring match
-        subs = [e for e in available if k in e]
-        if subs:
-            return random.choice(subs)
-
+        matches = [e for e in available if k in e]
+        if matches:
+            return random.choice(matches)
+        
         # fuzzy match
         close = difflib.get_close_matches(k, list(available), n=3, cutoff=0.7)
         if close:
@@ -467,16 +436,11 @@ def add_reaction(channel, ts, text=None, author_name=None):
 # I pull push doors
     # if chosen isn't available, attempt to search workspace emoji by keywords
     if chosen not in available:
-        # build candidate keywords from text and author name
         keywords = []
         if author_name:
-            # allow both raw name and mention form
-            keywords.append(author_name)
-            keywords.append(author_name.replace("<@", "").replace(">", ""))
+            keywords.extend([author_name, author_name.replace("<@", "").replace(">", "")])
         if text:
-            # extract word-like tokens
-            tokens = re.findall(r"[A-Za-z0-9_']{2,}", text)
-            keywords.extend(tokens)
+            keywords.extend(re.findall(r"[A-Za-z0-9_']{2,}", text))
 
         found = search_emoji_for_keywords(keywords, available)
         if found:
@@ -610,11 +574,8 @@ while True:
         except Exception:
             im_channels = []
 
-        # ensure allowed channels are included
+        # combine all channel types
         channels_to_scan = list(set(channels_to_scan) | set(ALLOWED_CHANNELS) | set(im_channels))
-
-        # ensure allowed channels are included
-        channels_to_scan = list(set(channels_to_scan) | set(ALLOWED_CHANNELS))
 
         for channel in channels_to_scan:
             hist = slack.conversations_history(channel=channel, limit=200)
@@ -633,7 +594,6 @@ while True:
 
                 # ignore bot messages and our own bot user id
                 if msg.get("user") == BOT_USER_ID and BOT_USER_ID:
-                    print("hit continue on line 606, bot user id is the user")
                     continue
 
                 normalized = normalize_for_trigger(text)
