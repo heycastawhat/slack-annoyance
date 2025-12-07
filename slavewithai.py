@@ -1,16 +1,16 @@
+import difflib
 import json
 import os
 import random
 import re
 import textwrap
-import difflib
 import time
 
 import langfuse
 import requests
 from langfuse import get_client, observe
-from slack_sdk import WebClient
 from pinecone import Pinecone
+from slack_sdk import WebClient
 
 # optionally load environment variables from a .env file if python-dotenv is installed
 try:
@@ -307,6 +307,7 @@ handled_ts = load_handled()
 try:
     _auth = slack.auth_test()
     BOT_USER_ID = _auth.get("user_id")
+    print(BOT_USER_ID)
 except Exception:
     BOT_USER_ID = None
     print(
@@ -601,9 +602,8 @@ while True:
                     continue
 
                 # ignore bot messages and our own bot user id
-                if msg.get("bot_id") or (
-                    BOT_USER_ID and msg.get("user") == BOT_USER_ID
-                ):
+                if msg.get("user") == BOT_USER_ID and BOT_USER_ID:
+                    print("hit continue on line 606, bot user id is the user")
                     continue
 
                 normalized = normalize_for_trigger(text)
