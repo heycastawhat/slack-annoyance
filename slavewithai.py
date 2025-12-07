@@ -587,7 +587,7 @@ while True:
         channels_to_scan = list(set(channels_to_scan) | set(ALLOWED_CHANNELS))
 
         for channel in channels_to_scan:
-            hist = slack.conversations_history(channel=channel, limit=10)
+            hist = slack.conversations_history(channel=channel, limit=200)
 
             if not hist.get("ok"):
                 print("History error:", hist)
