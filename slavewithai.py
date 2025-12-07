@@ -681,12 +681,12 @@ while True:
                 )
 
                 if triggered:
-                    # if triggered in a non-approved channel, ask user to move to the approved channel
-                    if channel not in ALLOWED_CHANNELS:
+                    # if triggered in a non-approved channel (and not a DM), ask user to move to the approved channel
+                    if (channel not in ALLOWED_CHANNELS) and (channel not in im_channels):
                         try:
                             slack.chat_postMessage(
                                 channel=channel,
-                                text="You gotta be in C0A1TJJTT8U to talk to me ay",
+                                text="You gotta be in <#C0A1TJJTT8U> to talk to me ay",
                                 thread_ts=reply_target,
                             )
                         except Exception:
