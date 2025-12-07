@@ -575,6 +575,7 @@ while True:
     try:
         # build channels to scan (include workspace channels); fallback to ALLOWED_CHANNELS
         try:
+            # fetch public/private channels
             ch_resp = slack.conversations_list(limit=200)
             if ch_resp.get("ok"):
                 channels_to_scan = [c["id"] for c in ch_resp.get("channels", [])]
@@ -582,6 +583,18 @@ while True:
                 channels_to_scan = ALLOWED_CHANNELS
         except Exception:
             channels_to_scan = ALLOWED_CHANNELS
+
+        # also fetch direct messages (ims) so the bot can respond to DMs
+        im_channels = []
+        try:
+            im_resp = slack.conversations_list(types="im", limit=200)
+            if im_resp.get("ok"):
+                im_channels = [c["id"] for c in im_resp.get("channels", [])]
+        except Exception:
+            im_channels = []
+
+        # ensure allowed channels are included
+        channels_to_scan = list(set(channels_to_scan) | set(ALLOWED_CHANNELS) | set(im_channels))
 
         # ensure allowed channels are included
         channels_to_scan = list(set(channels_to_scan) | set(ALLOWED_CHANNELS))
@@ -607,6 +620,57 @@ while True:
                     continue
 
                 normalized = normalize_for_trigger(text)
+
+                # handle DM commands in IM channels (remember / recall)
+                try:
+                    if channel in im_channels:
+                        ltext = text.strip()
+                        # remember: <text>
+                        if ltext.lower().startswith("remember:"):
+                            to_store = ltext.split(":", 1)[1].strip()
+                            if to_store:
+                                sid = f"dm-{msg.get('user')}-{ts.replace('.', '-')}-remember"
+                                ok = save_memory(sid, to_store)
+                                try:
+                                    if ok:
+                                        slack.chat_postMessage(channel=channel, text="got it — saved to memory.", thread_ts=reply_target)
+                                    else:
+                                        slack.chat_postMessage(channel=channel, text="couldn't save memory (fallback failed).", thread_ts=reply_target)
+                                except Exception:
+                                    pass
+                                handled_ts.add(ts)
+                                save_handled(handled_ts)
+                                continue
+
+                        # recall <query>
+                        if ltext.lower().startswith("recall"):
+                            parts = ltext.split(None, 1)
+                            q = parts[1].strip() if len(parts) > 1 else ""
+                            if not q:
+                                try:
+                                    slack.chat_postMessage(channel=channel, text="usage: `recall <query>` — I'll fetch related memories.", thread_ts=reply_target)
+                                except Exception:
+                                    pass
+                                handled_ts.add(ts)
+                                save_handled(handled_ts)
+                                continue
+                            try:
+                                mems = retrieve_memories(q, top_k=5)
+                                if mems:
+                                    body = "here are the top memories i found:\n" + "\n".join(f"- {m}" for m in mems)
+                                else:
+                                    body = "no related memories found."
+                                slack.chat_postMessage(channel=channel, text=body, thread_ts=reply_target)
+                            except Exception:
+                                try:
+                                    slack.chat_postMessage(channel=channel, text="failed to retrieve memories.", thread_ts=reply_target)
+                                except Exception:
+                                    pass
+                            handled_ts.add(ts)
+                            save_handled(handled_ts)
+                            continue
+                except Exception:
+                    pass
 
                 # decide where to post replies: use the parent thread if present
                 reply_target = msg.get("thread_ts") or ts
