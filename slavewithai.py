@@ -750,79 +750,94 @@ while True:
 
                 # Additionally, inspect replies inside this thread (if any)
                 # so the bot will respond to triggers that appear only in thread replies.
-                if msg.get("reply_count"):
+                # Always check for thread replies, don't rely on reply_count
+                try:
+                    thread_resp = slack.conversations_replies(
+                        channel=channel, ts=ts, limit=200
+                    )
+                    if thread_resp.get("ok"):
+                        thread_msgs = thread_resp.get("messages", [])
+                    else:
+                        thread_msgs = []
+                except Exception:
+                    thread_msgs = []
+
+                # iterate over replies (skip the parent which is the first item)
+                for reply_msg in thread_msgs:
+                    rts = reply_msg.get("ts")
+                    if not rts or rts == ts or rts in handled_ts:
+                        continue
+
+                    # ignore bot messages and our own bot user id
+                    if reply_msg.get("bot_id") or (
+                        BOT_USER_ID and reply_msg.get("user") == BOT_USER_ID
+                    ):
+                        handled_ts.add(rts)
+                        continue
+
+                    rtext = reply_msg.get("text", "")
+                    rnormalized = normalize_for_trigger(rtext)
+
+                    triggered_in_reply = any(
+                        rnormalized.startswith(t) or t in rnormalized
+                        for t in TRIGGERS
+                    )
+
+                    if not triggered_in_reply:
+                        continue
+
+                    # check if we've already replied in this thread after this reply
+                    already_replied = False
                     try:
-                        thread_resp = slack.conversations_replies(
+                        replies_resp = slack.conversations_replies(
                             channel=channel, ts=ts, limit=200
                         )
-                        if thread_resp.get("ok"):
-                            thread_msgs = thread_resp.get("messages", [])
+                        if replies_resp.get("ok"):
+                            replies = replies_resp.get("messages", [])
                         else:
-                            thread_msgs = []
-                    except Exception:
-                        thread_msgs = []
-
-                    # iterate over replies (skip the parent which is the first item)
-                    for reply_msg in thread_msgs:
-                        rts = reply_msg.get("ts")
-                        if not rts or rts == ts or rts in handled_ts:
-                            continue
-
-                        # ignore bot messages and our own bot user id
-                        if reply_msg.get("bot_id") or (
-                            BOT_USER_ID and reply_msg.get("user") == BOT_USER_ID
-                        ):
-                            handled_ts.add(rts)
-                            continue
-
-                        rtext = reply_msg.get("text", "")
-                        rnormalized = normalize_for_trigger(rtext)
-
-                        triggered_in_reply = any(
-                            rnormalized.startswith(t) or t in rnormalized
-                            for t in TRIGGERS
-                        )
-
-                        if not triggered_in_reply:
-                            continue
-
-                        # check if we've already replied in this thread after this reply
-                        already_replied = False
-                        try:
-                            replies_resp = slack.conversations_replies(
-                                channel=channel, ts=ts, limit=200
-                            )
-                            if replies_resp.get("ok"):
-                                replies = replies_resp.get("messages", [])
-                            else:
-                                replies = []
-                        except Exception:
                             replies = []
+                    except Exception:
+                        replies = []
 
-                        if replies:
-                            if BOT_USER_ID:
-                                for r in replies:
-                                    if r.get("user") == BOT_USER_ID or r.get("bot_id"):
-                                        try:
-                                            if float(r.get("ts", "0")) >= float(rts):
-                                                already_replied = True
-                                                break
-                                        except Exception:
+                    if replies:
+                        if BOT_USER_ID:
+                            for r in replies:
+                                if r.get("user") == BOT_USER_ID or r.get("bot_id"):
+                                    try:
+                                        if float(r.get("ts", "0")) >= float(rts):
                                             already_replied = True
                                             break
-                            else:
-                                for r in replies:
-                                    if r.get("bot_id"):
+                                    except Exception:
                                         already_replied = True
                                         break
+                        else:
+                            for r in replies:
+                                if r.get("bot_id"):
+                                    already_replied = True
+                                    break
 
-                        if already_replied:
-                            handled_ts.add(rts)
-                            save_handled(handled_ts)
-                            continue
+                    if already_replied:
+                        handled_ts.add(rts)
+                        save_handled(handled_ts)
+                        continue
 
-                        # post reply into the parent thread and include the replier's name
-                        replier_name = get_user_name(reply_msg.get("user"))
+                    # check if thread reply is in an allowed channel
+                    if (channel not in ALLOWED_CHANNELS) and (channel not in im_channels):
+                        try:
+                            slack.chat_postMessage(
+                                channel=channel,
+                                text="You gotta be in <#C0A1TJJTT8U> to talk to me ay",
+                                thread_ts=ts,
+                            )
+                        except Exception:
+                            pass
+                        handled_ts.add(rts)
+                        save_handled(handled_ts)
+                        continue
+
+                    # post reply into the parent thread and include the replier's name
+                    replier_name = get_user_name(reply_msg.get("user"))
+                    if replier_name not in BANNED_USERS:
                         reply = get_sarcastic_reply(rtext, author_name=replier_name)
                         parts = split_response(reply)
                         for p in parts:
@@ -846,6 +861,14 @@ while True:
                             save_memory(mem_id + "-reply", reply)
                         except Exception:
                             pass
+                        handled_ts.add(rts)
+                        save_handled(handled_ts)
+                    else:
+                        slack.chat_postMessage(
+                            channel=channel,
+                            text="You are banned. Please message an owner if you think this is a mistake.",
+                            thread_ts=ts,
+                        )
                         handled_ts.add(rts)
                         save_handled(handled_ts)
 
