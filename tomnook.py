@@ -2,6 +2,12 @@ import os
 import random
 import argparse
 
+import hmac
+import hashlib
+import time
+from flask import Flask, request, jsonify
+
+
 from slack_sdk import WebClient
 
 # optionally load environment variables from a .env file if python-dotenv is installed
@@ -14,7 +20,22 @@ except Exception:
 
 # --- CONFIG ---
 SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
-print("Hit continue on line 15, slack token loaded")
+
+SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
+
+# only respond in these channels
+ALLOWED_CHANNELS = [
+    "C09H93AKCLA",
+    "C09H6322H7D",
+    "C09KB5MT6N6",
+    "C0A1TJJTT8U",
+    "C09AHN6V1U7",
+    "C0A21M6CWLU",
+    "C0A1XK69529",
+    "C09KUCDAXFE",
+]
+
+print("Hit continue on line 15, slack token and channels loaded")
 
 QUOTES = [
     "Meanwhile, I'll Investigate These Orange-Like Items Growing In The Trees. I Suspect They're Real Oranges! - Tom Nook",
