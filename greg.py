@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk import WebClient
+from langfuse import observe
 
 from tomnook import QUOTES
 
@@ -56,7 +57,7 @@ def process_message(body, say):
             except Exception as e:
                 print("Failed to add reaction:", e)
 
-
+@observe
 def get_sarcastic_reply(message_text):
     # build a single prompt string including the user's message
     prompt = (
@@ -114,7 +115,7 @@ def get_sarcastic_reply(message_text):
                 "error", "Im broken inside lol :( Try again? - dm the maintainers"
             )
 
-
+@observe
 def get_ai_chosen_emoji(message_text, emoji_list):
     prompt = f"""
     Choose EXACTLY ONE emoji *name* from this list and output ONLY the name, nothing else.
