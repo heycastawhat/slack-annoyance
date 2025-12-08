@@ -17,7 +17,16 @@ APP_TOKEN = getenv("APP_TOKEN")
 HACKCLUB_AI_KEY = getenv("HACKCLUB_AI_KEY")
 MODEL = "google/gemini-2.5-flash"
 
-ALLOWED_CHANNELS = ["C0A1XK69529"]
+ALLOWED_CHANNELS = [
+    "C0A1XK69529",
+    "C09H93AKCLA",
+    "C09KB5MT6N6",
+    "C09H6322H7D",
+    "C0A1TJJTT8U",
+    "C09AHN6V1U7",
+    "C0A21M6CWLU",
+    "C09KUCDAXFE",
+]
 
 app = App(token=SLACK_TOKEN)
 
@@ -85,7 +94,9 @@ def get_sarcastic_reply(message_text):
         try:
             return j["choices"][0]["text"]
         except Exception:
-            return j.get("error", "Im broken inside lol :( Try again? - dm the maintainers")
+            return j.get(
+                "error", "Im broken inside lol :( Try again? - dm the maintainers"
+            )
 
 
 # EVENTS / SOCKET STUFF
