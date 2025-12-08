@@ -5,6 +5,7 @@ import requests
 from dotenv import load_dotenv
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
+from slack_sdk import WebClient
 
 from tomnook import QUOTES
 
@@ -39,8 +40,21 @@ def process_message(body, say):
 
         reply = get_sarcastic_reply(text)
         say(text=reply, thread_ts=event_ts)
-    else:
-        print("Someone pinged bot in", channel)
+
+        # reactions
+        client = WebClient(token=SLACK_TOKEN)
+        emoji_resp = client.emoji_list()
+        emoji_list = list(emoji_resp.get("emoji", {}).keys())
+
+        emoji_choice = get_ai_chosen_emoji(text, emoji_list)
+
+        if emoji_choice in emoji_list:
+            try:
+                client.reactions_add(
+                    channel=channel, name=emoji_choice, timestamp=event_ts
+                )
+            except Exception as e:
+                print("Failed to add reaction:", e)
 
 
 def get_sarcastic_reply(message_text):
@@ -97,6 +111,37 @@ def get_sarcastic_reply(message_text):
             return j.get(
                 "error", "Im broken inside lol :( Try again? - dm the maintainers"
             )
+
+
+def get_ai_chosen_emoji(message_text, emoji_list):
+    prompt = f"""
+    Choose EXACTLY ONE emoji *name* from this list and output ONLY the name, nothing else.
+    You must pick the best sarcastic reaction for this message.
+    emoji list: {emoji_list}
+    user message: {message_text}
+    """
+
+    r = requests.post(
+        "https://ai.hackclub.com/proxy/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {HACKCLUB_AI_KEY}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+        },
+        timeout=15,
+    )
+
+    try:
+        r.raise_for_status()
+        j = r.json()
+        text = j["choices"][0]["message"]["content"].strip()
+        # sanitize: Slack emoji must not contain colons
+        return text.replace(":", "").split()[0]
+    except:
+        return ""
 
 
 # EVENTS / SOCKET STUFF
