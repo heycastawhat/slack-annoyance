@@ -166,7 +166,7 @@ def get_ai_chosen_emoji(message_text, emoji_list):
             "model": MODEL,
             "messages": [{"role": "user", "content": prompt}],
         },
-        timeout=25,
+        timeout=15,
     )
 
     try:
