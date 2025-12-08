@@ -118,7 +118,8 @@ def get_sarcastic_reply(message_text):
 def get_ai_chosen_emoji(message_text, emoji_list):
     prompt = f"""
     Choose EXACTLY ONE emoji *name* from this list and output ONLY the name, nothing else.
-    You must pick the best sarcastic reaction for this message. If the user asks for a certain reaction, *and* it is on the list, choose that one.
+    You must pick the best sarcastic reaction for this message. If the user asks for a certain reaction, *and* it is on the list, choose that one. 
+    If the user asks for a certain reaction, *and* it is not on the list, just choose the closest match, or choose any reaction from the list.
     emoji list: {emoji_list}
     user message: {message_text}
     """
