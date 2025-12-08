@@ -61,7 +61,20 @@ emoji_list = [
     "this",
     "skull_cry",
     "glitch_crab",
-    "slack-annoyance"
+    "angry-dino",
+    "shocked",
+    "eyes-shaking",
+    "_",
+    "get-out",
+    "kyle",
+    "litreally-1984",
+    "tradeoffer",
+    "zach",
+    "x",
+    "haii",
+    "hehehe",
+    "ayo",
+    "som-duck"
 ]
 
 app = App(token=SLACK_TOKEN)
