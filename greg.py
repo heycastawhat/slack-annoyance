@@ -115,8 +115,15 @@ def acnh_quote(ack, body, client):
     )
 
 
-@app.message("assistdev")
-@app.message("grdev")
+@app.message("assistant")
+@app.message("greg")
+@app.message("unwanted ai")
+@app.message("slack annoyance")
+@app.message("slave")
+@app.message("servant")
+@app.message("clanker")
+@app.message("clanka")
+@app.message("grok is this true")
 @app.event("app_mention")
 def on_pinged(ack, body, say):
     ack()
