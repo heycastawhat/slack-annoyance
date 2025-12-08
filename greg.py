@@ -14,15 +14,23 @@ ALLOWED_CHANNELS = ["C0A1XK69529"]
 
 app = App(token=SLACK_TOKEN)
 
+def process_message(body, say):
+    channel = body["event"]["channel"]
+    event_ts = body["event"]["ts"]
+    if channel in ALLOWED_CHANNELS:
+        say(text="Replying to ping in an authed channel", thread_ts=event_ts)
+    else:
+        print("Someone pinged bot in", channel)
+
 
 @app.event("app_mention")
 def on_pinged(ack, body, say):
     ack()
-    channel = body["event"]["channel"]
-    if channel in ALLOWED_CHANNELS:
-        say("The channel is set as allowed - i am scared")
-    else:
-        print("Someone pinged bot in", channel)
+    process_message(body, say)
+
+@app.message("assistdev")
+def on_pingword(body, say):
+    process_message(body, say)
 
 
 if __name__ == "__main__":
