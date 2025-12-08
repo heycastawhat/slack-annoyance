@@ -30,6 +30,40 @@ ALLOWED_CHANNELS = [
     "C09KUCDAXFE",
 ]
 
+emoji_list = [
+    "hyperfastparrot",
+    "heavysob",
+    "thumbsup-all",
+    "skulk",
+    "pf",
+    "3d-sad-emoji",
+    "thumbup-nobg",
+    "upvote",
+    "downvote",
+    "heavysobrandom",
+    "ultrafastparrot",
+    "loll",
+    "yay",
+    "yayayayayay",
+    "yesyes",
+    "no-no",
+    "shrug3d",
+    "star",
+    "noooo",
+    "eyes_wtf", 
+    "fire",
+    "wave-club-penguin",
+    "dinowow",
+    "nervous_dino",
+    "happy_ping_sock",
+    "mad_pung_sock",
+    "real",
+    "this",
+    "skull_cry",
+    "glitch_crab",
+    "slack-annoyance"
+]
+
 app = App(token=SLACK_TOKEN)
 
 
@@ -44,8 +78,6 @@ def process_message(body, say):
 
         # reactions
         client = WebClient(token=SLACK_TOKEN)
-        emoji_resp = client.emoji_list()
-        emoji_list = list(emoji_resp.get("emoji", {}).keys())
 
         emoji_choice = get_ai_chosen_emoji(text, emoji_list)
 
@@ -119,7 +151,7 @@ def get_sarcastic_reply(message_text):
 def get_ai_chosen_emoji(message_text, emoji_list):
     prompt = f"""
     Choose EXACTLY ONE emoji *name* from the emoji list and output ONLY the name, nothing else.
-    You must pick the best sarcastic reaction for the user's message.
+    You must pick the best sarcastic reaction for the user's message. You must pick an emoji that is in the list.
     emoji list: {emoji_list}
     user message: {message_text}
     """
