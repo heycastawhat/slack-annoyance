@@ -74,7 +74,9 @@ emoji_list = [
     "haii",
     "hehehe",
     "ayo",
-    "som-duck"
+    "som-duck",
+    "blunder",
+    "brilliant"
 ]
 
 app = App(token=SLACK_TOKEN)
