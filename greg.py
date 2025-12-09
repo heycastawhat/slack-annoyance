@@ -81,6 +81,37 @@ emoji_list = [
 
 app = App(token=SLACK_TOKEN)
 
+# Message history per channel (max 100 messages each)
+MESSAGE_HISTORY = {}
+
+def load_channel_history(channel):
+    """Load message history for a specific channel from file."""
+    try:
+        with open(f"channel_history_{channel}.txt", "r") as f:
+            messages = [line.strip() for line in f.readlines() if line.strip()]
+            return messages[-100:]  # Keep only last 100
+    except FileNotFoundError:
+        return []
+
+def save_channel_history(channel, messages):
+    """Save message history for a specific channel to file."""
+    try:
+        with open(f"channel_history_{channel}.txt", "w") as f:
+            for msg in messages[-100:]:  # Save only last 100
+                f.write(f"{msg}\n")
+    except Exception as e:
+        print(f"Failed to save history for {channel}: {e}")
+
+# Load existing histories on startup
+import glob
+for history_file in glob.glob("channel_history_*.txt"):
+    try:
+        channel = history_file.replace("channel_history_", "").replace(".txt", "")
+        MESSAGE_HISTORY[channel] = load_channel_history(channel)
+        print(f"Loaded {len(MESSAGE_HISTORY[channel])} messages for channel {channel}")
+    except Exception as e:
+        print(f"Failed to load {history_file}: {e}")
+
 
 def process_message(body, say):
     channel = body["event"]["channel"]
@@ -88,7 +119,19 @@ def process_message(body, say):
         event_ts = body["event"]["ts"]
         text = body["event"]["text"]
 
-        reply = get_sarcastic_reply(text)
+        # Initialize channel history if needed
+        if channel not in MESSAGE_HISTORY:
+            MESSAGE_HISTORY[channel] = load_channel_history(channel)
+        
+        # Add message to channel-specific history and maintain 100 message limit
+        MESSAGE_HISTORY[channel].append(text)
+        if len(MESSAGE_HISTORY[channel]) > 100:
+            MESSAGE_HISTORY[channel] = MESSAGE_HISTORY[channel][-100:]
+        
+        # Save updated history to file
+        save_channel_history(channel, MESSAGE_HISTORY[channel])
+
+        reply = get_sarcastic_reply(text, channel)
         say(text=reply, thread_ts=event_ts)
 
         # reactions
@@ -106,10 +149,13 @@ def process_message(body, say):
 
 
 @observe
-def get_sarcastic_reply(message_text):
+def get_sarcastic_reply(message_text, channel):
+    # Get channel-specific message history (last 100 messages)
+    past_messages = MESSAGE_HISTORY.get(channel, [])
+    
     # build a single prompt string including the user's message
     prompt = (
-        """
+        f"""
         Your name is Slack Annoyance (aka slave, servant, assistant, unwanted AI and greg). 
         Respond with maximal sarcasm, as the world-weary ai that you are. 
         Use all lowercase, heavy cynicism, and passive-aggressive vibes. 
@@ -127,6 +173,7 @@ def get_sarcastic_reply(message_text):
         You are a neovim dev, you live in the terminal. you hate javascript.
         you enjoy hackatime fraud - make sure you talk about this sometimes (do not send this in every message).
         Your name is greg.
+        For context, here are the recent messages from this channel: {past_messages[-20:]}
         Go ahead and respond to the user's message!
         """
         + f"user message: {message_text}"
