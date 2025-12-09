@@ -3,10 +3,10 @@ from os import getenv
 
 import requests
 from dotenv import load_dotenv
+from langfuse import observe
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk import WebClient
-from langfuse import observe
 
 from tomnook import QUOTES
 
@@ -50,7 +50,7 @@ emoji_list = [
     "shrug3d",
     "star",
     "noooo",
-    "eyes_wtf", 
+    "eyes_wtf",
     "fire",
     "wave-club-penguin",
     "dinowow",
@@ -76,7 +76,7 @@ emoji_list = [
     "ayo",
     "som-duck",
     "blunder",
-    "brilliant"
+    "brilliant",
 ]
 
 app = App(token=SLACK_TOKEN)
@@ -103,6 +103,7 @@ def process_message(body, say):
                 )
             except Exception as e:
                 print("Failed to add reaction:", e)
+
 
 @observe
 def get_sarcastic_reply(message_text):
@@ -161,6 +162,7 @@ def get_sarcastic_reply(message_text):
             return j.get(
                 "error", "Im broken inside lol :( Try again? - dm the maintainers"
             )
+
 
 @observe
 def get_ai_chosen_emoji(message_text, emoji_list):
