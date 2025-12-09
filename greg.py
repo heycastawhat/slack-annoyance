@@ -76,7 +76,7 @@ emoji_list = [
     "ayo",
     "som-duck",
     "blunder",
-    "brilliant",
+    "brilliant-move",
 ]
 
 app = App(token=SLACK_TOKEN)
@@ -174,6 +174,7 @@ def get_sarcastic_reply(message_text, channel):
         you enjoy 'committing hackatime fraud' - make sure you talk about this sometimes (do not send this in every message).
         Your name is greg.
         For context, here are the recent messages from this channel: {past_messages[-20:]}
+        If you'd like to include any of the custom emojis, use the format `:emoji-name:` using names from this list: {emoji_list}.
         Go ahead and respond to the user's message!
         """
         + f"user message: {message_text}"
