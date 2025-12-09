@@ -1,4 +1,5 @@
 import random
+import re
 from os import getenv
 
 import requests
@@ -84,6 +85,7 @@ app = App(token=SLACK_TOKEN)
 # Message history per channel (max 100 messages each)
 MESSAGE_HISTORY = {}
 
+
 def load_channel_history(channel):
     """Load message history for a specific channel from file."""
     try:
@@ -92,6 +94,7 @@ def load_channel_history(channel):
             return messages[-100:]  # Keep only last 100
     except FileNotFoundError:
         return []
+
 
 def save_channel_history(channel, messages):
     """Save message history for a specific channel to file."""
@@ -102,8 +105,10 @@ def save_channel_history(channel, messages):
     except Exception as e:
         print(f"Failed to save history for {channel}: {e}")
 
+
 # Load existing histories on startup
 import glob
+
 for history_file in glob.glob("channel_history_*.txt"):
     try:
         channel = history_file.replace("channel_history_", "").replace(".txt", "")
@@ -122,12 +127,12 @@ def process_message(body, say):
         # Initialize channel history if needed
         if channel not in MESSAGE_HISTORY:
             MESSAGE_HISTORY[channel] = load_channel_history(channel)
-        
+
         # Add message to channel-specific history and maintain 100 message limit
         MESSAGE_HISTORY[channel].append(text)
         if len(MESSAGE_HISTORY[channel]) > 100:
             MESSAGE_HISTORY[channel] = MESSAGE_HISTORY[channel][-100:]
-        
+
         # Save updated history to file
         save_channel_history(channel, MESSAGE_HISTORY[channel])
 
@@ -152,7 +157,7 @@ def process_message(body, say):
 def get_sarcastic_reply(message_text, channel):
     # Get channel-specific message history (last 100 messages)
     past_messages = MESSAGE_HISTORY.get(channel, [])
-    
+
     # build a single prompt string including the user's message
     prompt = (
         f"""
@@ -260,15 +265,15 @@ def acnh_quote(ack, body, client):
     )
 
 
-@app.message("assistant")
-@app.message("greg")
-@app.message("unwanted ai")
-@app.message("slack annoyance")
-@app.message("slave")
-@app.message("servant")
-@app.message("clanker")
-@app.message("clanka")
-@app.message("grok is this true")
+@app.message(re.compile("assistant", re.IGNORECASE))
+@app.message(re.compile("greg", re.IGNORECASE))
+@app.message(re.compile("unwanted ai", re.IGNORECASE))
+@app.message(re.compile("slack annoyance", re.IGNORECASE))
+@app.message(re.compile("slave", re.IGNORECASE))
+@app.message(re.compile("servant", re.IGNORECASE))
+@app.message(re.compile("clanker", re.IGNORECASE))
+@app.message(re.compile("clanka", re.IGNORECASE))
+@app.message(re.compile("grok is this true", re.IGNORECASE))
 @app.event("app_mention")
 def on_pinged(ack, body, say):
     ack()
