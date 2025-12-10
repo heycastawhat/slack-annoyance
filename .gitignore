@@ -1,4 +1,4 @@
 .env
-flastsm/*message
+*/*message*
 __pycache__
 compose.yaml
