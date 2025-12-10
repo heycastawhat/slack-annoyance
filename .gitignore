@@ -1,2 +1,3 @@
 .env
 *message
+__pycache__
