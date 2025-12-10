@@ -1,0 +1,16 @@
+services:
+  greg:
+    image: greg
+    env_file:
+      ./.env
+    volumes:
+      - ./annoyance/data:/app/data
+
+  flastsm:
+    image: flastsm
+    env_file:
+      ./.env
+    environment:
+      SLACK_CHANNEL: # your channel id
+      SLACK_UID: # your slack user id
+      LASTFM_USER: # your lastfm username
