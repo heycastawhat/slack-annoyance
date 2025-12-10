@@ -5,7 +5,7 @@
 - [ ] Restrict usage to those in #slack-annoyance (if you're in it you can use it any approved channel) - else it would display a 'go join...'
 - [x] Make the bot work
 - [x] Banning and Strike system (slack canvas)
-- [ ] Banned users cant message bot
+- [x] Banned users cant message bot
 - [ ] Docker
  - [ ] Images for each service (greg, flastsm, flastsm-kyle)
  - [ ] Docker compose for all 

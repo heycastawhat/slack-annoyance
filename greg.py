@@ -31,6 +31,8 @@ ALLOWED_CHANNELS = [
     "C09KUCDAXFE",
 ]
 
+BANNED_USERS = ["U091HG1TP6K"]
+
 emoji_list = [
     "hyperfastparrot",
     "heavysob",
@@ -122,35 +124,38 @@ def process_message(body, say):
     channel = body["event"]["channel"]
     if channel in ALLOWED_CHANNELS:
         event_ts = body["event"]["ts"]
-        text = body["event"]["text"]
+        if body["event"]["user"] not in BANNED_USERS:
+            text = body["event"]["text"]
 
-        # Initialize channel history if needed
-        if channel not in MESSAGE_HISTORY:
-            MESSAGE_HISTORY[channel] = load_channel_history(channel)
+            # Initialize channel history if needed
+            if channel not in MESSAGE_HISTORY:
+                MESSAGE_HISTORY[channel] = load_channel_history(channel)
 
-        # Add message to channel-specific history and maintain 100 message limit
-        MESSAGE_HISTORY[channel].append(text)
-        if len(MESSAGE_HISTORY[channel]) > 100:
-            MESSAGE_HISTORY[channel] = MESSAGE_HISTORY[channel][-100:]
+            # Add message to channel-specific history and maintain 100 message limit
+            MESSAGE_HISTORY[channel].append(text)
+            if len(MESSAGE_HISTORY[channel]) > 100:
+                MESSAGE_HISTORY[channel] = MESSAGE_HISTORY[channel][-100:]
 
-        # Save updated history to file
-        save_channel_history(channel, MESSAGE_HISTORY[channel])
+            # Save updated history to file
+            save_channel_history(channel, MESSAGE_HISTORY[channel])
 
-        reply = get_sarcastic_reply(text, channel)
-        say(text=reply, thread_ts=event_ts)
+            reply = get_sarcastic_reply(text, channel)
+            say(text=reply, thread_ts=event_ts)
 
-        # reactions
-        client = WebClient(token=SLACK_TOKEN)
+            # reactions
+            client = WebClient(token=SLACK_TOKEN)
 
-        emoji_choice = get_ai_chosen_emoji(text, emoji_list)
+            emoji_choice = get_ai_chosen_emoji(text, emoji_list)
 
-        if emoji_choice in emoji_list:
-            try:
-                client.reactions_add(
-                    channel=channel, name=emoji_choice, timestamp=event_ts
-                )
-            except Exception as e:
-                print("Failed to add reaction:", e)
+            if emoji_choice in emoji_list:
+                try:
+                    client.reactions_add(
+                        channel=channel, name=emoji_choice, timestamp=event_ts
+                    )
+                except Exception as e:
+                    print("Failed to add reaction:", e)
+        else:
+            say(text="You have been banned from using this bot. If you believe this is a mistake please contact one of the bot maintainers.", thread_ts=event_ts)
 
 
 @observe
