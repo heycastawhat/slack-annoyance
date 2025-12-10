@@ -22,14 +22,18 @@ Use uv!
 uv sync
 ```
 
-Copy .env.local to .env and insert your api keys (This has been designed to work with Hack Club AI.)
+Copy .env.local to .env and insert your api keys (This has been designed to work with Hack Club AI.) You'll also need to copy compose.example.yaml to compose.yaml edit the env vars in compose.yaml
 
-**run annoying bot thing**
+Place your flastsm (last fm scrobble) custom message in the file path you specify in .env
+
+Build docker images:
+
 ```bash
-uv run slavewithai.py
+docker build -t flastsm flastsm
+docker build -t greg annoyance
 ```
----
-**run lastfm thing**
+
+Run containers
+
 ```bash
-uv run flastsm.py
-```
+docker compose up -d
