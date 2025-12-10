@@ -31,7 +31,7 @@ ALLOWED_CHANNELS = [
     "C09KUCDAXFE",
 ]
 
-BANNED_USERS = ["U091HG1TP6K"]
+BANNED_USERS = []
 
 emoji_list = [
     "hyperfastparrot",
