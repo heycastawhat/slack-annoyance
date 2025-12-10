@@ -91,7 +91,7 @@ MESSAGE_HISTORY = {}
 def load_channel_history(channel):
     """Load message history for a specific channel from file."""
     try:
-        with open(f"channel_history_{channel}.txt", "r") as f:
+        with open(f"/app/data/channel_history_{channel}.txt", "r") as f:
             messages = [line.strip() for line in f.readlines() if line.strip()]
             return messages[-100:]  # Keep only last 100
     except FileNotFoundError:
@@ -100,8 +100,10 @@ def load_channel_history(channel):
 
 def save_channel_history(channel, messages):
     """Save message history for a specific channel to file."""
+    import os
+    os.makedirs("/app/data", exist_ok=True)
     try:
-        with open(f"channel_history_{channel}.txt", "w") as f:
+        with open(f"/app/data/channel_history_{channel}.txt", "w") as f:
             for msg in messages[-100:]:  # Save only last 100
                 f.write(f"{msg}\n")
     except Exception as e:
@@ -111,9 +113,9 @@ def save_channel_history(channel, messages):
 # Load existing histories on startup
 import glob
 
-for history_file in glob.glob("channel_history_*.txt"):
+for history_file in glob.glob("/app/data/channel_history_*.txt"):
     try:
-        channel = history_file.replace("channel_history_", "").replace(".txt", "")
+        channel = history_file.replace("/app/data/channel_history_", "").replace(".txt", "")
         MESSAGE_HISTORY[channel] = load_channel_history(channel)
         print(f"Loaded {len(MESSAGE_HISTORY[channel])} messages for channel {channel}")
     except Exception as e:

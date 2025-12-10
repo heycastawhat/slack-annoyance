@@ -12,7 +12,6 @@ LASTFM_API_KEY = os.getenv("LASTFM_API_KEY")
 LASTFM_USER = os.getenv("LASTFM_USER")
 SLACK_CHANNEL = os.getenv("SLACK_CHANNEL")
 SLACK_USER_ID = os.getenv("SLACK_UID")
-MESSAGE_FILE = os.getenv("MUSIC_MESSAGE_FILE")
 
 POLL_INTERVAL = 25           # seconds between checks
 SESSION_TIMEOUT = 10 * 60    # 10 minutes inactivity resets session
@@ -23,7 +22,7 @@ last_track_name = None
 thread_ts = None
 last_activity_time = 0
 
-with open(MESSAGE_FILE, 'r') as f:
+with open("message.txt", 'r') as f:
    MUSIC_MESSAGE = f.readline() 
 
 # --- MAIN LOOP ---
