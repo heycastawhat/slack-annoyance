@@ -33,6 +33,8 @@ ALLOWED_CHANNELS = [
 
 BANNED_USERS = []
 
+ADMINS = ["U091KE59H5H", "U091HG1TP6K"]
+
 emoji_list = [
     "hyperfastparrot",
     "heavysob",
@@ -126,7 +128,8 @@ def process_message(body, say):
     channel = body["event"]["channel"]
     if channel in ALLOWED_CHANNELS:
         event_ts = body["event"]["ts"]
-        if body["event"]["user"] not in BANNED_USERS:
+        user = body["event"]["user"]
+        if user not in BANNED_USERS:
             text = body["event"]["text"]
 
             # Initialize channel history if needed
@@ -141,7 +144,7 @@ def process_message(body, say):
             # Save updated history to file
             save_channel_history(channel, MESSAGE_HISTORY[channel])
 
-            reply = get_sarcastic_reply(text, channel)
+            reply = get_sarcastic_reply(user, text, channel)
             say(text=reply, thread_ts=event_ts)
 
             # reactions
@@ -161,7 +164,7 @@ def process_message(body, say):
 
 
 @observe
-def get_sarcastic_reply(message_text, channel):
+def get_sarcastic_reply(user, message_text, channel):
     # Get channel-specific message history (last 100 messages)
     past_messages = MESSAGE_HISTORY.get(channel, [])
 
@@ -187,6 +190,7 @@ def get_sarcastic_reply(message_text, channel):
         Your name is greg.
         For context, here are the recent messages from this channel: {past_messages[-20:]}
         If you'd like to include any of the custom emojis, use the format `:emoji-name:` using names from this list: {emoji_list}.
+        {"The message you're receiving is from one of the owners of this bot. Please be slightly kinder to them and treat them as your maintainer/owner." if user in ADMINS else ""}
         Go ahead and respond to the user's message!
         """
         + f"user message: {message_text}"
