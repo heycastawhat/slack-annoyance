@@ -262,6 +262,8 @@ def get_ai_chosen_emoji(message_text, emoji_list):
 
 # EVENTS / SOCKET STUFF
 
+# Track processed messages to prevent duplicate responses
+PROCESSED_MESSAGES = set()
 
 @app.command("/acnhquote")
 def acnh_quote(ack, body, client):
@@ -276,19 +278,25 @@ def acnh_quote(ack, body, client):
     )
 
 
-@app.message(re.compile("assistant", re.IGNORECASE))
-@app.message(re.compile("greg", re.IGNORECASE))
-@app.message(re.compile("unwanted ai", re.IGNORECASE))
-@app.message(re.compile("slack annoyance", re.IGNORECASE))
-@app.message(re.compile("slave", re.IGNORECASE))
-@app.message(re.compile("servant", re.IGNORECASE))
-@app.message(re.compile("clanker", re.IGNORECASE))
-@app.message(re.compile("clanka", re.IGNORECASE))
-@app.message(re.compile("grok is this true", re.IGNORECASE))
+# Combined pattern for all trigger words
+trigger_pattern = re.compile(r"assistant|greg|unwanted ai|slack annoyance|slave|servant|clanker|clanka|grok is this true", re.IGNORECASE)
+
+@app.message(trigger_pattern)
 @app.event("app_mention")
 def on_pinged(ack, body, say):
     ack()
-    process_message(body, say)
+    
+    # Create unique message ID to prevent duplicate processing
+    message_id = f"{body['event']['channel']}_{body['event']['ts']}"
+    
+    if message_id not in PROCESSED_MESSAGES:
+        PROCESSED_MESSAGES.add(message_id)
+        
+        # Keep only last 1000 processed messages to prevent memory growth
+        if len(PROCESSED_MESSAGES) > 1000:
+            PROCESSED_MESSAGES.clear()
+        
+        process_message(body, say)
 
 
 @app.event("message")
