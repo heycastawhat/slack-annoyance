@@ -17,7 +17,9 @@ app = App(token=SLACK_TOKEN)
 @app.event("member_joined_channel")
 def joined_channel(event, say):
     if event["channel"] == MY_CHANNEL:
-        say(f"Its <@{event["user"]}>! Welcome to <@U091KE59H5H>'s channel of eternal regret! Josh should be over soon to say hoi! :D ")
+        say(
+            f"Its <@{event["user"]}>! Welcome to <@U091KE59H5H>'s channel of eternal regret! Josh should be over soon to say hoi! :D "
+        )
 
         # add the joining user to the ping usergroup if not already a member
         try:
@@ -34,12 +36,13 @@ def joined_channel(event, say):
                 if user_id not in members:
                     members.append(user_id)
                     # update the usergroup membership (comma-separated user IDs)
-                    upd = app.client.usergroups_users_update(usergroup=UG_ID, users=",".join(members))
+                    upd = app.client.usergroups_users_update(
+                        usergroup=UG_ID, users=",".join(members)
+                    )
                     if not upd.get("ok"):
                         print("Failed to update usergroup:", upd)
         except Exception as e:
             print("Error adding user to usergroup:", e)
-
 
 
 if __name__ == "__main__":
