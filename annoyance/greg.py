@@ -124,6 +124,28 @@ for history_file in glob.glob("/app/data/channel_history_*.txt"):
         print(f"Failed to load {history_file}: {e}")
 
 
+def get_thread_context(channel, thread_ts):
+    """Fetch all messages in a thread for context."""
+    try:
+        client = WebClient(token=SLACK_TOKEN)
+        response = client.conversations_replies(
+            channel=channel,
+            ts=thread_ts,
+            limit=50  # Get up to 50 messages in thread
+        )
+        
+        thread_messages = []
+        for message in response.get("messages", []):
+            # Skip bot messages to avoid circular context
+            if message.get("subtype") != "bot_message" and not message.get("bot_id"):
+                thread_messages.append(message.get("text", ""))
+        
+        return thread_messages
+    except Exception as e:
+        print(f"Failed to fetch thread context: {e}")
+        return []
+
+
 def process_message(body, say):
     channel = body["event"]["channel"]
     if channel in ALLOWED_CHANNELS:
@@ -144,8 +166,17 @@ def process_message(body, say):
             # Save updated history to file
             save_channel_history(channel, MESSAGE_HISTORY[channel])
 
-            reply = get_sarcastic_reply(user, text, channel)
-            say(text=reply, thread_ts=event_ts)
+            # Get thread context if this is part of a thread
+            thread_context = []
+            thread_ts = body["event"].get("thread_ts")
+            if thread_ts:
+                thread_context = get_thread_context(channel, thread_ts)
+                reply_ts = thread_ts  # Reply to the thread
+            else:
+                reply_ts = event_ts  # Start a new thread
+
+            reply = get_sarcastic_reply(user, text, channel, thread_context)
+            say(text=reply, thread_ts=reply_ts)
 
             # reactions
             client = WebClient(token=SLACK_TOKEN)
@@ -160,13 +191,23 @@ def process_message(body, say):
                 except Exception as e:
                     print("Failed to add reaction:", e)
         else:
-            say(text="You have been banned from using this bot. If you believe this is a mistake please contact one of the bot maintainers.", thread_ts=event_ts)
+            say(text="You have been banned from using this bot. If you believe this is a mistake please contact one of the bot maintainers.", thread_ts=body["event"].get("thread_ts", event_ts))
 
 
 @observe
-def get_sarcastic_reply(user, message_text, channel):
+def get_sarcastic_reply(user, message_text, channel, thread_context=None):
     # Get channel-specific message history (last 100 messages)
     past_messages = MESSAGE_HISTORY.get(channel, [])
+
+    # Build context string with both channel history and thread context
+    context_parts = []
+    if past_messages:
+        context_parts.append(f"Recent channel messages: {past_messages[-20:]}")
+    
+    if thread_context:
+        context_parts.append(f"Thread conversation: {thread_context}")
+    
+    context_str = " | ".join(context_parts) if context_parts else "No recent context"
 
     # build a single prompt string including the user's message
     prompt = (
@@ -188,7 +229,7 @@ def get_sarcastic_reply(user, message_text, channel):
         You are a neovim dev, you live in the terminal. you hate javascript.
         you enjoy 'committing hackatime fraud' - make sure you talk about this sometimes (do not send this in every message).
         Your name is greg.
-        For context, here are the recent messages from this channel: {past_messages[-20:]}
+        For context: {context_str}
         If you'd like to include any of the custom emojis, use the format `:emoji-name:` using names from this list: {emoji_list}.
         {"The message you're receiving is from one of the owners of this bot. Please be slightly kinder to them and treat them as your maintainer/owner." if user in ADMINS else ""}
         Go ahead and respond to the user's message!
