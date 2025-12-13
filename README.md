@@ -9,6 +9,7 @@ Slack Annoyance - One of the Slack bots of all time
 ## Features
 - Annoying Ai That Responds to "Slave", "Servant", "@Slack Annoyance", "Slack Annoyance", "Assistant", "Grok is this true"
 - Live Last.Fm Scrobble Updates (Full Release Coming Soon)
+- /acnhquote 
 ---
 ## Services Used
 - Slack (slack.com)
