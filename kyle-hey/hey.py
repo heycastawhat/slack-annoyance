@@ -18,7 +18,7 @@ app = App(token=SLACK_TOKEN)
 def joined_channel(event, say):
     if event["channel"] == MY_CHANNEL:
         say(
-            f"Hey there, <@{event["user"]}>! Welcome to <@U091HG1TP6K>'s channel! Kyle come say hi soon :yay: (unless he's asleep :loll:)"
+            f"Hey there, <@{event["user"]}>! Welcome to <@U091HG1TP6K>'s channel! (This bot automatically added you to my ping group! :yay:) Kyle come say hi soon :yay: (unless he's asleep :loll:)"
         )
 
         # add the joining user to the ping usergroup if not already a member
