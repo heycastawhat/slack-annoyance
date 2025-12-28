@@ -37,7 +37,7 @@ ADMINS = ["U091KE59H5H", "U091HG1TP6K"]
 emoji_list = [
     "hyperfastparrot",
     "heavysob",
-    "thumbsup-all",
+    "thumbsup_all",
     "skulk",
     "pf",
     "3d-sad-emoji",
