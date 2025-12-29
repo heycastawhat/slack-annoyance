@@ -23,7 +23,7 @@ def joined_channel(event, say):
 
         # add the joining user to the ping usergroup if not already a member
         try:
-            UG_ID = "S09P5N455FS"
+            UG_ID = "S09RBMMMH3Q"
             user_id = event.get("user")
             if user_id:
                 # fetch current members of the usergroup
