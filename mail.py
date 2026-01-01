@@ -48,7 +48,7 @@ app = App(token=SLACK_BOT_TOKEN)
 
 def generate_email(recipient_email, context=""):
     """Use Hack Club AI to generate email content"""
-    user_prompt = f"Write a polite professional email to {recipient_email}."
+    user_prompt = f"Write a email to {recipient_email}."
     if context:
         user_prompt += f" Include the following details: {context}"
     
@@ -57,7 +57,7 @@ def generate_email(recipient_email, context=""):
         {"role": "user", "content": user_prompt}
     ]
     response = ai_client.chat.send(
-        model="qwen/qwen3-32b",
+        model="google/gemini-2.5-flash",
         messages=messages,
         stream=False
     )
