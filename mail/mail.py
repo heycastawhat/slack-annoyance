@@ -4,8 +4,10 @@ from email.message import EmailMessage
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from openrouter import OpenRouter
+from python_dotenv import load_dotenv
 
 # ---------------- CONFIG ----------------
+load_dotenv()
 
 ZOHO_EMAIL = os.environ.get("ZOHO_EMAIL")
 ZOHO_APP_PASSWORD = os.environ.get("ZOHO_APP_PASSWORD")
