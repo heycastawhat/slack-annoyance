@@ -7,13 +7,13 @@ from openrouter import OpenRouter
 
 # ---------------- CONFIG ----------------
 
-ZOHO_EMAIL = os.environ["ZOHO_EMAIL"]
-ZOHO_APP_PASSWORD = os.environ["ZOHO_APP_PASSWORD"]
+ZOHO_EMAIL = os.environ("ZOHO_EMAIL")
+ZOHO_APP_PASSWORD = os.environ("ZOHO_APP_PASSWORD")
 
-SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
-SLACK_APP_TOKEN = os.environ["SLACK_APP_TOKEN"]
+SLACK_BOT_TOKEN = os.environ("SLACK_BOT_TOKEN")
+SLACK_APP_TOKEN = os.environ("SLACK_APP_TOKEN")
 
-HC_API_KEY = os.environ["HACKCLUB_AI_API_KEY"]
+HC_API_KEY = os.environ("HACKCLUB_AI_API_KEY")
 
 # Your system prompt
 SYSTEM_PROMPT = """
