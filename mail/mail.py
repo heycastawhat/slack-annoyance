@@ -12,8 +12,8 @@ load_dotenv()
 ZOHO_EMAIL = os.getenv("ZOHO_EMAIL")
 ZOHO_APP_PASSWORD = os.getenv("ZOHO_APP_PASSWORD")
 
-SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
-SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
+SLACK_BOT_TOKEN = os.getenv("SLACK_TOKEN")
+SLACK_APP_TOKEN = os.getenv("APP_TOKEN")
 
 HC_API_KEY = os.getenv("HACKCLUB_AI_API_KEY")
 
