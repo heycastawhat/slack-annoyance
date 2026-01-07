@@ -10,4 +10,4 @@ COPY . .
 
 VOLUME ["/app/data"]
 
-CMD ["python", "greg.py"]
+CMD ["python", "-u", "greg.py"]
