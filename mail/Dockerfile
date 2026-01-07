@@ -8,5 +8,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "mail.py"]
+CMD ["python", "-u", "mail.py"]
 
