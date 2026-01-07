@@ -250,7 +250,7 @@ def get_geoff_reply(user, message_text, channel, thread_context=None):
         r.raise_for_status()
         j = r.json()
     except Exception as e:
-        print(e)
+        print("error: ", e)
         return "Im broken inside lol :( - dm the maintainers"
 
     # robustly extract content from common shapes
