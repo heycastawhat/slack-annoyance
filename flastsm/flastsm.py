@@ -69,7 +69,7 @@ while True:
             album_art_url = next(
                 (img["#text"] for img in reversed(images) if img.get("#text")), None
             )
-            if track["name"].trim().lower() == "buddy holly":
+            if track["name"].strip().lower() == "buddy holly":
                 slack.chat_postMessage(
                     channel=SLACK_CHANNEL,
                     reply_broadcast=True,
@@ -80,7 +80,7 @@ while True:
                             "type": "section",
                             "text": {
                                 "type": "mrkdwn",
-                                "text": f"GET WEEZERED :loll: It's Buddy Holly by Weezer.",
+                                "text": "GET WEEZERED :loll: It's Buddy Holly by Weezer.",
                             },
                         },
                         {
