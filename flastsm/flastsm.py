@@ -1,5 +1,6 @@
 import os
 import time
+from random import choice
 
 import requests
 from dotenv import load_dotenv
@@ -27,6 +28,20 @@ last_activity_time = 0
 
 with open(MUSIC_MESSAGE_FILE, "r") as f:  # pyright: ignore[reportArgumentType, reportCallIssue]
     MUSIC_MESSAGE = f.readline()
+
+# --- Music Responses ---
+custom_messages = [
+    "Oh look, {ping} is listening to **{song}** by **{artist}**",
+    "Really? You're listening to **{song}** by **{artist}** in 2026? Questionable.",
+    ":loll: Imagine thinking **{song}** by **{artist} is good in 2026.",
+    "Oh look, {ping} is listening to {song} by {artist}.",
+    "Really? You’re seriously listening to {song} by {artist} in 2026?",
+    "{song} by {artist}? That’s the hill you’re dying on?",
+    "Not {ping} playing {song} by {artist} like it’s still relevant.",
+    "{song} by {artist} just came on… instant judgment.",
+    "{song} by {artist}? PEAK :ultrafastcatppuccinparrot:",
+    "Hey, {ping} listening to my favourite {song}, {song} by {artist}",
+]
 
 # --- MAIN LOOP ---
 while True:
@@ -91,17 +106,22 @@ while True:
                     ],
                 )
             else:
+                reply = choice(custom_messages).format(
+                    ping=f"<@{SLACK_USER_ID}>",
+                    song=track["name"],
+                    artist=track["artist"]["#text"],
+                )
                 # Post song under the session thread
                 slack.chat_postMessage(
                     channel=SLACK_CHANNEL,
                     thread_ts=thread_ts,
-                    text=f"{track['name']} by {track['artist']['#text']}",
+                    text=reply,
                     blocks=[
                         {
                             "type": "section",
                             "text": {
                                 "type": "mrkdwn",
-                                "text": f"{track['name']} by {track['artist']['#text']}",
+                                "text": reply,
                             },
                         },
                         {
