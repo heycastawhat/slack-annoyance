@@ -31,16 +31,16 @@ with open(MUSIC_MESSAGE_FILE, "r") as f:  # pyright: ignore[reportArgumentType, 
 
 # --- Music Responses ---
 custom_messages = [
-    "Oh look, {ping} is listening to **{song}** by **{artist}**",
-    "Really? You're listening to **{song}** by **{artist}** in 2026? Questionable.",
-    ":loll: Imagine thinking **{song}** by **{artist} is good in 2026.",
-    "Oh look, {ping} is listening to {song} by {artist}.",
-    "Really? You’re seriously listening to {song} by {artist} in 2026?",
-    "{song} by {artist}? That’s the hill you’re dying on?",
-    "Not {ping} playing {song} by {artist} like it’s still relevant.",
-    "{song} by {artist} just came on… instant judgment.",
-    "{song} by {artist}? PEAK :ultrafastcatppuccinparrot:",
-    "Hey, {ping} listening to my favourite {song}, {song} by {artist}",
+    "Oh look, {ping} is listening to *{song}* by *{artist}*",
+    "Really? You're listening to *{song}* by *{artist}* in 2026? Questionable.",
+    ":loll: Imagine thinking *{song}* by *{artist}* is good in 2026.",
+    "Oh look, {ping} is listening to *{song}* by *{artist}*.",
+    "Really? You’re seriously listening to *{song}* by *{artist}* in 2026?",
+    "*{song}* by *{artist}*? That’s the hill you’re dying on?",
+    "Not {ping} playing *{song}* by *{artist}* like it’s still relevant.",
+    "*{song}* by *{artist}* just came on… instant judgment.",
+    "*{song}* by *{artist}*? PEAK :ultrafastcatppuccinparrot:",
+    "Hey, {ping} listening to my favourite song, *{song}* by *{artist}*",
 ]
 
 # --- MAIN LOOP ---
