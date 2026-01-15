@@ -63,11 +63,32 @@ while True:
                 )
                 thread_ts = resp["ts"]
 
+            # Get album art url
+            images = track.get("image", [])
+
+            album_art_url = next(
+                (img["#text"] for img in reversed(images) if img.get("#text")), None
+            )
+
             # Post song under the session thread
             slack.chat_postMessage(
                 channel=SLACK_CHANNEL,
-                text=f"{track['name']} by {track['artist']['#text']}",
                 thread_ts=thread_ts,
+                text=f"{track['name']} by {track['artist']['#text']}",
+                blocks=[
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": f"{track['name']} by {track['artist']['#text']}",
+                        },
+                    },
+                    {
+                        "type": "image",
+                        "image_url": album_art_url,
+                        "alt_text": "Album art",
+                    },
+                ],
             )
 
     except Exception as e:
