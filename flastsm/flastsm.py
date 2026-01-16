@@ -40,7 +40,7 @@ custom_messages = [
     "Not {ping} playing *{song}* by *{artist}* like it’s still relevant.",
     "*{song}* by *{artist}* just came on… instant judgment.",
     "*{song}* by *{artist}*? PEAK :ultrafastcatppuccinparrot:",
-    "Hey, {ping} listening to my favourite song, *{song}* by *{artist}*",
+    "Hey, {ping} is listening to my favourite song, *{song}* by *{artist}*",
 ]
 last_reply = ""
 
