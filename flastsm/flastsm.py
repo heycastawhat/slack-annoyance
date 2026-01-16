@@ -70,6 +70,7 @@ while True:
         if thread_ts and (current_time - last_activity_time) > SESSION_TIMEOUT:
             thread_ts = None
             last_track_name = None
+            last_activity_time = 0
 
         if now_playing and track["name"] != last_track_name:
             last_track_name = track["name"]
