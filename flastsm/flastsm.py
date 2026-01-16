@@ -112,7 +112,7 @@ while True:
                     if reply != last_reply:
                         last_reply = reply
                         break
-                    reply.format(
+                    reply = reply.format(
                         ping=f"<@{SLACK_USER_ID}>",
                         song=track["name"],
                         artist=track["artist"]["#text"],
