@@ -108,14 +108,15 @@ while True:
                 )
             else:
                 while True:
-                    reply = choice(custom_messages).format(
+                    reply = choice(custom_messages)
+                    if reply != last_reply:
+                        last_reply = reply
+                        break
+                    reply.format(
                         ping=f"<@{SLACK_USER_ID}>",
                         song=track["name"],
                         artist=track["artist"]["#text"],
                     )
-                    if reply != last_reply:
-                        last_reply = reply
-                        break
                 # Post song under the session thread
                 slack.chat_postMessage(
                     channel=SLACK_CHANNEL,
