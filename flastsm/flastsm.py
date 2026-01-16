@@ -112,11 +112,11 @@ while True:
                     if unformated_reply != last_reply:
                         last_reply = unformated_reply
                         break
-                    reply = unformated_reply.format(
-                        ping=f"<@{SLACK_USER_ID}>",
-                        song=track["name"],
-                        artist=track["artist"]["#text"],
-                    )
+                reply = unformated_reply.format(
+                    ping=f"<@{SLACK_USER_ID}>",
+                    song=track["name"],
+                    artist=track["artist"]["#text"],
+                )
                 # Post song under the session thread
                 slack.chat_postMessage(
                     channel=SLACK_CHANNEL,
