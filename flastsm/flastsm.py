@@ -17,6 +17,10 @@ SLACK_USER_ID = os.getenv("SLACK_UID")
 
 MUSIC_MESSAGE_FILE = os.getenv("MESSAGE_FILE")
 
+if not MUSIC_MESSAGE_FILE:
+    raise RuntimeError("MESSAGE_FILE env var is not set")
+
+
 POLL_INTERVAL = 25  # seconds between checks
 SESSION_TIMEOUT = 10 * 60  # 10 minutes inactivity resets session
 
@@ -26,7 +30,7 @@ last_track_name = None
 thread_ts = None
 last_activity_time = 0
 
-with open(MUSIC_MESSAGE_FILE, "r") as f:  # pyright: ignore[reportArgumentType, reportCallIssue]
+with open(MUSIC_MESSAGE_FILE, "r") as f:
     MUSIC_MESSAGE = f.readline()
 
 # --- Music Responses ---
