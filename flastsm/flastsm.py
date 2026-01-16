@@ -108,11 +108,11 @@ while True:
                 )
             else:
                 while True:
-                    reply = choice(custom_messages)
-                    if reply != last_reply:
-                        last_reply = reply
+                    unformated_reply = choice(custom_messages)
+                    if unformated_reply != last_reply:
+                        last_reply = unformated_reply
                         break
-                    reply = reply.format(
+                    reply = unformated_reply.format(
                         ping=f"<@{SLACK_USER_ID}>",
                         song=track["name"],
                         artist=track["artist"]["#text"],
