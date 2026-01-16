@@ -42,6 +42,7 @@ custom_messages = [
     "*{song}* by *{artist}*? PEAK :ultrafastcatppuccinparrot:",
     "Hey, {ping} listening to my favourite song, *{song}* by *{artist}*",
 ]
+last_reply = ""
 
 # --- MAIN LOOP ---
 while True:
@@ -106,11 +107,15 @@ while True:
                     ],
                 )
             else:
-                reply = choice(custom_messages).format(
-                    ping=f"<@{SLACK_USER_ID}>",
-                    song=track["name"],
-                    artist=track["artist"]["#text"],
-                )
+                while True:
+                    reply = choice(custom_messages).format(
+                        ping=f"<@{SLACK_USER_ID}>",
+                        song=track["name"],
+                        artist=track["artist"]["#text"],
+                    )
+                    if reply != last_reply:
+                        last_reply = reply
+                        break
                 # Post song under the session thread
                 slack.chat_postMessage(
                     channel=SLACK_CHANNEL,
