@@ -128,7 +128,7 @@ while True:
                             "type": "section",
                             "text": {
                                 "type": "mrkdwn",
-                                "text": f"<@{SLACK_USER_ID}> is overcompensating hard with Overcompensate by Twenty One Pilots... I am so mature. :sunglasses:",
+                                "text": f"<@{SLACK_USER_ID}> is overcompensating hard with *Overcompensate* by *Twenty One Pilots*... I am so mature. :sunglasses:",
                             },
                         },
                         {
