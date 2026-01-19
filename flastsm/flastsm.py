@@ -45,6 +45,12 @@ custom_messages = [
     "*{song}* by *{artist}* just came on… instant judgment.",
     "*{song}* by *{artist}*? PEAK :ultrafastcatppuccinparrot:",
     "Hey, {ping} is listening to my favourite song, *{song}* by *{artist}*",
+    "Wow, *{song}* by *{artist}* is such a classic. Just like {ping}'s taste in music.",
+    "Alert the media! {ping} is jamming out to *{song}* by *{artist}*.",
+    "Why is {ping} listening to *{song}* by *{artist}*? I thought we agreed on better music.",
+    "Look alive everyone, {ping} is playing *{song}* by *{artist}*.",
+    "Brace yourselves, *{song}* by *{artist}* is on.",
+    "Oh no, {ping} is listening to *{song}* by *{artist}* again.",
 ]
 last_reply = ""
 
@@ -102,6 +108,27 @@ while True:
                             "text": {
                                 "type": "mrkdwn",
                                 "text": "GET WEEZERED :loll: It's Buddy Holly by Weezer.",
+                            },
+                        },
+                        {
+                            "type": "image",
+                            "image_url": album_art_url,
+                            "alt_text": "Album art",
+                        },
+                    ],
+                )
+            elif track["name"].strip().lower() == "overcompensate":
+                slack.chat_postMessage(
+                    channel=SLACK_CHANNEL,
+                    reply_broadcast=True,
+                    thread_ts=thread_ts,
+                    text=f"{track['name']} by {track['artist']['#text']}",
+                    blocks=[
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": f"<@{SLACK_USER_ID}> is overcompensating hard with Overcompensate by Twenty One Pilots... I am so mature. :sunglasses:",
                             },
                         },
                         {
