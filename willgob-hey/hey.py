@@ -16,6 +16,7 @@ app = App(token=SLACK_TOKEN)
 
 @app.event("member_joined_channel")
 def joined_channel(event, say):
+    print(event["channel"], "join event")
     if event["channel"] == MY_CHANNEL:
         say(
             f"Hi<@{event['user']}>. Welcome to <@U09C832RGJW>'s pothole. <@U09C832RGJW>, get over here and say hello."
