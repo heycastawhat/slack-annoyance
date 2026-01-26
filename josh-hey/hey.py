@@ -18,7 +18,7 @@ app = App(token=SLACK_TOKEN)
 def joined_channel(event, say):
     if event["channel"] == MY_CHANNEL:
         say(
-            f"Hiii <@{event["user"]}>! Welcome ~back~ to ~trench~ <@U091KE59H5H>'s channel of eternal regret! Josh should be over soon to say hoi! :D (Ive also added you to the ping group because who wouldnt want pings about everything and nothing!)"
+            f"Hiii <@{event['user']}>! Welcome ~back~ to ~trench~ <@U091KE59H5H>'s channel of eternal regret! Josh should be over soon to say hoi! :D (Ive also added you to the ping group because who wouldnt want pings about everything and nothing!)"
         )
 
         # add the joining user to the ping usergroup if not already a member
