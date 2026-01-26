@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "hey.py"]
+CMD ["python", "-u", "hey.py"]
