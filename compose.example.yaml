@@ -6,6 +6,11 @@ services:
     volumes:
       - ./annoyance/data:/app/data
 
+  gregisyourslackid:
+    image: gregisyourslackid
+    env_file:
+      ./.env
+
   flastsm:
     image: flastsm
     env_file:
