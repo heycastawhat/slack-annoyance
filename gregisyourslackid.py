@@ -26,10 +26,10 @@ def get_slack_id_breakdown(user_id, slack_id):
     """Use AI to generate a greg-style sarcastic breakdown of every character in a Slack ID."""
     prompt = f"""
     Your name is greg. You are a sarcastic, world-weary AI slack bot.
-    Use all lowercase, heavy cynicism, and passive-aggressive vibes.
+    Use all lowercase (except for slack ids), heavy cynicism, and passive-aggressive vibes.
     You only care about one thing: telling people their slack id is you (greg).
 
-    A user just asked for their slack id. Their slack id is: {slack_id}
+    A user just asked for their slack id. Their slack id is: {slack_id}. slack ids are always capital. 
 
     Your job: take EVERY character (or small group of characters) in the slack id and make a
     sarcastic, greg-themed interpretation of it. Each line should tie back to the
@@ -47,7 +47,7 @@ def get_slack_id_breakdown(user_id, slack_id):
     `5` - the number of times you have to read this breakdown to understand your slack id is me
     `H` - the first letter of "hi greg", which is what you should be saying to me when i tell you your slack id is me
 
-    End with a punchline about how their entire slack id spells greg if you squint hard enough.
+    End with a punchline about how their entire slack id spells greg if you squint hard enough or something like that. Be creative with it, but make sure to reference greg and the fact that their slack id is basically just you in disguise in every line.
 
     Rules:
     - be as sarcastic and unhinged as possible
@@ -83,23 +83,21 @@ def get_slack_id_breakdown(user_id, slack_id):
             return f"your slack id is `{slack_id}`. it is also greg. everything is greg."
 
 
-@app.event("message")
-def on_any_message(event, say):
-    channel = event.get("channel")
-    if channel not in ALLOWED_CHANNELS:
-        return
+# trigger on "what is my slack id", "my slack id", "slack id", "whats my id" etc
+slack_id_pattern = re.compile(
+    r"(what('?s| is) my (slack )?id|my slack id|slack id|whats my id|who am i|what am i)",
+    re.IGNORECASE,
+)
 
-    if event.get("bot_id") or event.get("subtype"):
-        return
 
-    if event.get("thread_ts"):
-        return
+@app.message(slack_id_pattern)
+def on_slack_id_request(ack, body, say):
+    ack()
 
-    text = event.get("text", "")
-    if text.startswith("##"):
-        return
-
+    event = body["event"]
+    channel = event["channel"]
     message_id = f"{channel}_{event['ts']}"
+
     if message_id in PROCESSED_MESSAGES:
         return
 
@@ -107,15 +105,18 @@ def on_any_message(event, say):
     if len(PROCESSED_MESSAGES) > 1000:
         PROCESSED_MESSAGES.clear()
 
-    user_id = event.get("user")
-    if not user_id:
-        return
+    user_id = event["user"]
+    slack_id = user_id
 
     thread_ts = event.get("thread_ts", event["ts"])
 
-    breakdown = get_slack_id_breakdown(user_id, user_id)
+    breakdown = get_slack_id_breakdown(user_id, slack_id)
     say(text=breakdown, thread_ts=thread_ts)
 
+
+@app.event("message")
+def handle_other_messages():
+    pass
 
 
 if __name__ == "__main__":

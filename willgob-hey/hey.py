@@ -24,4 +24,6 @@ def joined_channel(event, say):
 
 
 if __name__ == "__main__":
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
     SocketModeHandler(app=app, app_token=APP_TOKEN).start()
