@@ -42,4 +42,5 @@ docker build -t greg annoyance
 Run containers
 
 ```bash
-docker compose up -d
+docker compose up -d --build
+```
