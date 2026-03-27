@@ -159,7 +159,7 @@ def poll_lastfm():
                     if session["thread_ts"] is None:
                         resp = slack.chat_postMessage(
                             channel=channel_id,
-                            text=f"<@{slack_uid}> started a listening session",
+                            text=f"<@{slack_uid}> started a listening session :rythmicalparrot:",
                         )
                         session["thread_ts"] = resp["ts"]
 
