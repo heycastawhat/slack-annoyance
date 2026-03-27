@@ -67,12 +67,25 @@ sessions = {}
 
 # --- Slash Command ---
 @app.command("/flastsm-setup")
-def handle_flastsm_setup(ack, respond, command):
+def handle_flastsm_setup(ack, respond, command, client):
     ack()
 
     channel_id = command["channel_id"]
     user_id = command["user_id"]
     text = command.get("text", "").strip()
+
+    # Check if the user is a channel manager (creator) or workspace admin/owner
+    try:
+        channel_info = client.conversations_info(channel=channel_id)["channel"]
+        user_info = client.users_info(user=user_id)["user"]
+        is_channel_creator = channel_info.get("creator") == user_id
+        is_admin = user_info.get("is_admin", False) or user_info.get("is_owner", False)
+        if not is_channel_creator and not is_admin:
+            respond("You must be a channel manager or workspace admin to set up flastsm in this channel.")
+            return
+    except Exception as e:
+        respond(f"Failed to verify permissions: {e}")
+        return
 
     if not text:
         respond("Usage: `/flastsm-setup <lastfm_username>` — sets up Last.fm tracking for you in this channel.")
@@ -89,7 +102,7 @@ def handle_flastsm_setup(ack, respond, command):
 
     respond(
         response_type="in_channel",
-        text=f"✅ Last.fm tracking set up! Now watching *{lastfm_user}*'s scrobbles in this channel for <@{user_id}>.",
+        text=f":ultrafastcatppuccinparrot: Last.fm tracking set up! Now watching *{lastfm_user}*'s scrobbles in this channel for <@{user_id}>.",
     )
 
 
@@ -146,7 +159,7 @@ def poll_lastfm():
                     if session["thread_ts"] is None:
                         resp = slack.chat_postMessage(
                             channel=channel_id,
-                            text=f"<@{slack_uid}> started a listening session 🎵",
+                            text=f"<@{slack_uid}> started a listening session",
                         )
                         session["thread_ts"] = resp["ts"]
 
