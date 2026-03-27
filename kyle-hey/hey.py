@@ -15,10 +15,11 @@ app = App(token=SLACK_TOKEN)
 
 
 @app.event("member_joined_channel")
-def joined_channel(event, say):
+def joined_channel(event):
     if event["channel"] == MY_CHANNEL:
-        say(
-            f"Hey there, <@{event['user']}>! Welcome to <@U091HG1TP6K>'s channel! (This bot automatically added you to my ping group! :yay:) Kyle come say hi soon :yay: (unless he's asleep :loll:)"
+        app.client.chat_postMessage(
+            channel=MY_CHANNEL,
+            text=f"Hey there, <@{event['user']}>! Welcome to <@U091HG1TP6K>'s channel! (This bot automatically added you to my ping group! :yay:) Kyle come say hi soon :yay: (unless he's asleep :loll:)",
         )
 
         # add the joining user to the ping usergroup if not already a member
