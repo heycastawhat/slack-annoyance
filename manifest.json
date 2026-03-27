@@ -9,7 +9,15 @@
         "bot_user": {
             "display_name": "Slack Annoyance",
             "always_online": true
-        }
+        },
+        "slash_commands": [
+            {
+                "command": "/flastsm-setup",
+                "description": "Set up Last.fm tracking in this channel",
+                "usage_hint": "<lastfm_username>",
+                "should_escape": false
+            }
+        ]
     },
     "oauth_config": {
         "scopes": {
@@ -25,13 +33,14 @@
                 "reactions:read",
                 "reactions:write",
                 "users.profile:read",
-                "users:read"
+                "users:read",
+                "commands"
             ]
         }
     },
     "settings": {
         "org_deploy_enabled": false,
-        "socket_mode_enabled": false,
+        "socket_mode_enabled": true,
         "token_rotation_enabled": false
     }
 }
