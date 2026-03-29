@@ -86,9 +86,7 @@ def get_slack_id_breakdown(user_id, slack_id):
 @app.event("message")
 def on_any_message(event, say):
     channel = event.get("channel")
-    channel_type = event.get("channel_type", "")
-    is_dm = channel_type == "im"
-    if channel not in ALLOWED_CHANNELS and not is_dm:
+    if channel not in ALLOWED_CHANNELS:
         return
 
     if event.get("bot_id") or event.get("subtype"):
