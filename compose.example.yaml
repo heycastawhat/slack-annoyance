@@ -1,21 +1,23 @@
 services:
   greg:
-    image: greg
+    build: ./annoyance
+    restart: unless-stopped
+    image: greg:latest
     env_file:
-      ./.env
+      - ./.env
     volumes:
       - ./annoyance/data:/app/data
 
-  gregisyourslackid:
+  greg-is-my-slack-id:
+    build: ./gregisyourslackid
+    restart: unless-stopped
     image: gregisyourslackid
     env_file:
-      ./.env
+      - ./.env
 
   flastsm:
-    image: flastsm
+    build: ./flastsm
+    restart: unless-stopped
+    image: flastsm:latest
     env_file:
-      ./.env
-    environment:
-      SLACK_CHANNEL: # your channel id
-      SLACK_UID: # your slack user id
-      LASTFM_USER: # your lastfm username
+      - ./.env

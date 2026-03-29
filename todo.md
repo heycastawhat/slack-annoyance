@@ -6,9 +6,9 @@
 - [x] Make the bot work
 - [x] Banning and Strike system (slack canvas)
 - [x] Banned users cant message bot
-- [ ] Docker
- - [ ] Images for each service (greg, flastsm, flastsm-kyle)
- - [ ] Docker compose for all 
+- [x] Docker
+ - [x] Images for each service (greg, flastsm, flastsm-kyle)
+ - [x] Docker compose for all 
 
 ## Medium Priority
 - [x] Make reactions be chosen by AI not random
