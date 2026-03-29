@@ -150,7 +150,9 @@ def get_thread_context(channel, thread_ts):
 
 def process_message(geoff, body, say):
     channel = body["event"]["channel"]
-    if channel in ALLOWED_CHANNELS:
+    channel_type = body["event"].get("channel_type", "")
+    is_dm = channel_type == "im"
+    if channel in ALLOWED_CHANNELS or is_dm:
         event_ts = body["event"]["ts"]
         user = body["event"]["user"]
         if user not in BANNED_USERS:
@@ -439,8 +441,28 @@ def geoff(ack, body, say):
 
 
 @app.event("message")
-def this_stops_a_bunch_of_debug_logs():
-    pass
+def handle_dm(event, body, say):
+    """Handle DM messages - respond to all DMs without needing trigger words."""
+    channel_type = event.get("channel_type", "")
+    if channel_type != "im":
+        return
+
+    if event.get("bot_id") or event.get("subtype"):
+        return
+
+    message_id = f"{event['channel']}_{event['ts']}"
+    if message_id in PROCESSED_MESSAGES:
+        return
+
+    PROCESSED_MESSAGES.add(message_id)
+    if len(PROCESSED_MESSAGES) > 1000:
+        PROCESSED_MESSAGES.clear()
+
+    text = event.get("text", "")
+    if re.search(r"geoff", text, re.IGNORECASE):
+        process_message(True, body, say)
+    else:
+        process_message(False, body, say)
 
 
 if __name__ == "__main__":
