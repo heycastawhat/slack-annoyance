@@ -1,5 +1,8 @@
 ## Slack Annoyance - One of the Slack bots of all time
 
+>[!WARNING]
+> Slack Annoyance has moved away from GitHub. This repo is outdated. Visit the new repo on [GitLab](https://gitlab.com/castahuh/slack-annoyance) for the latest.
+
 <img width="256" height="256" alt="Untitled design" src="https://github.com/user-attachments/assets/41c2436d-7320-457d-9cd6-37f23bb8c5be" />
 <img width="787" height="143" alt="Screenshot 2025-12-05 at 7 12 05 PM" src="https://github.com/user-attachments/assets/5eac5ca3-a016-4a00-8314-08e2a4263504" />
    <img width="351" height="126" alt="Screenshot 2025-12-05 at 7 18 40 PM" src="https://github.com/user-attachments/assets/19a7c9a5-5511-44d9-a7f4-abcc22381dba" />
